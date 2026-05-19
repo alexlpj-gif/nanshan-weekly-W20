@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>南山人壽 — 保險業週報情報</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ns-navy: #1B3A6B;           /* 南山藍 — primary */
+    --ns-navy-dark: #122549;
+    --ns-navy-light: #2A5391;
+    --ns-red: #C8102E;             /* 南山紅 — accent */
+    --ns-red-light: #E63946;
+    --ns-gold: #B8923D;            /* 信賴金 — secondary accent */
+    --ns-gold-light: #D4B26A;
+    --ns-bg: #F5F7FA;
+    --ns-bg-soft: #FBFCFE;
+    --ns-card: #FFFFFF;
+    --ns-card-tinted: #F0F4FA;
+    --ns-text: #1A1A2E;
+    --ns-text-muted: #5C6B82;
+    --ns-text-faint: #8B98AB;
+    --ns-border: #E2E8F0;
+    --ns-border-strong: #CBD5E1;
+    --priority-high: #C8102E;
+    --priority-med: #E89B23;
+    --priority-watch: #4A7BB7;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 3px rgba(27, 58, 107, 0.06), 0 1px 2px rgba(27, 58, 107, 0.04);
+    --shadow-md: 0 4px 12px rgba(27, 58, 107, 0.08), 0 2px 4px rgba(27, 58, 107, 0.04);
+    --shadow-lg: 0 12px 32px rgba(27, 58, 107, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--ns-bg);
+    color: var(--ns-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  /* ===== Header ===== */
+  .report-header {
+    background: linear-gradient(135deg, var(--ns-navy) 0%, var(--ns-navy-dark) 100%);
+    color: #fff;
+    padding: 36px 48px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(200, 16, 46, 0.18) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header-band {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+    position: relative; z-index: 1;
+  }
+  .header-left .eyebrow {
+    font-size: 12px; letter-spacing: 2px; color: var(--ns-gold-light);
+    text-transform: uppercase; font-weight: 600; margin-bottom: 8px;
+  }
+  .header-left h1 {
+    font-size: 32px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.2;
+  }
+  .header-left .subtitle {
+    margin-top: 6px; font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 400;
+  }
+  .header-right { text-align: right; font-size: 13px; }
+  .header-right .week-label {
+    font-size: 26px; font-weight: 700; color: var(--ns-gold-light); letter-spacing: 1px;
+  }
+  .header-right .week-range { margin-top: 4px; color: rgba(255,255,255,0.85); }
+  .header-right .generated { margin-top: 8px; color: rgba(255,255,255,0.55); font-size: 11px; }
+
+  .focus-bar {
+    margin-top: 22px; padding: 12px 18px; background: rgba(255,255,255,0.08);
+    border-left: 3px solid var(--ns-red);
+    border-radius: 4px; font-size: 13.5px; display: none;
+  }
+  .focus-bar.visible { display: block; }
+  .focus-bar .focus-label {
+    color: var(--ns-gold-light); font-weight: 600; margin-right: 8px;
+  }
+
+  /* ===== Layout ===== */
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 48px 48px; }
+
+  section {
+    background: var(--ns-card); border-radius: var(--radius-lg);
+    padding: 28px 32px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+    border: 1px solid var(--ns-border);
+  }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+    padding-bottom: 16px; border-bottom: 2px solid var(--ns-border);
+  }
+  .section-number {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--ns-navy), var(--ns-navy-light));
+    color: #fff; font-weight: 700; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-family: 'Inter', sans-serif;
+  }
+  .section-header h2 {
+    font-size: 22px; font-weight: 700; color: var(--ns-navy); letter-spacing: -0.3px;
+  }
+  .section-header .section-sub {
+    font-size: 13px; color: var(--ns-text-muted); margin-left: 8px; font-weight: 400;
+  }
+
+  /* ===== Section 1: Executive Snapshot ===== */
+  .snapshot-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; }
+  .top-stories { display: flex; flex-direction: column; gap: 12px; }
+  .story-card {
+    padding: 16px 20px; background: var(--ns-card-tinted);
+    border-radius: var(--radius); border-left: 4px solid var(--ns-navy);
+    position: relative;
+  }
+  .story-card .story-rank {
+    position: absolute; top: 12px; right: 16px;
+    font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 900;
+    color: var(--ns-gold); opacity: 0.6;
+  }
+  .story-card .story-title {
+    font-weight: 700; color: var(--ns-navy); margin-bottom: 6px;
+    font-size: 15.5px; padding-right: 28px;
+  }
+  .story-card .story-summary { font-size: 13.5px; color: var(--ns-text-muted); line-height: 1.55; }
+  .story-card .story-tag {
+    display: inline-block; margin-top: 8px; font-size: 11px;
+    padding: 2px 8px; background: var(--ns-navy); color: #fff;
+    border-radius: 4px; font-weight: 500;
+  }
+
+  .one-liner {
+    background: linear-gradient(135deg, var(--ns-red) 0%, var(--ns-red-light) 100%);
+    color: #fff; padding: 24px; border-radius: var(--radius-lg);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .one-liner .one-liner-label {
+    font-size: 11px; letter-spacing: 2px; opacity: 0.85; font-weight: 600;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .one-liner .one-liner-text {
+    font-size: 17px; font-weight: 700; line-height: 1.5;
+  }
+  .one-liner .one-liner-attribution {
+    margin-top: 12px; font-size: 12px; opacity: 0.78;
+    border-top: 1px solid rgba(255,255,255,0.25); padding-top: 10px;
+  }
+
+  /* ===== Section 2: Regulatory Timeline ===== */
+  .timeline-filters {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .filter-chip {
+    padding: 6px 14px; background: var(--ns-card-tinted);
+    border: 1px solid var(--ns-border); border-radius: 20px;
+    font-size: 13px; cursor: pointer; transition: all 0.15s;
+    color: var(--ns-text-muted); font-weight: 500;
+  }
+  .filter-chip:hover { background: #E2EAF5; }
+  .filter-chip.active {
+    background: var(--ns-navy); color: #fff; border-color: var(--ns-navy);
+  }
+
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 12px; top: 0; bottom: 0;
+    width: 2px; background: var(--ns-border-strong);
+  }
+  .timeline-item {
+    position: relative; padding: 14px 16px; margin-bottom: 12px;
+    background: var(--ns-bg-soft); border-radius: var(--radius);
+    border: 1px solid var(--ns-border);
+    transition: all 0.2s;
+  }
+  .timeline-item:hover { transform: translateX(4px); box-shadow: var(--shadow-sm); }
+  .timeline-item.hidden { display: none; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -28px; top: 18px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--ns-navy); border: 3px solid var(--ns-bg);
+    box-shadow: 0 0 0 2px var(--ns-border-strong);
+  }
+  .timeline-item.priority-high::before { background: var(--priority-high); }
+  .timeline-item.priority-med::before { background: var(--priority-med); }
+  .timeline-item.priority-watch::before { background: var(--priority-watch); }
+  .timeline-item .timeline-date {
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--ns-text-faint); font-weight: 600;
+  }
+  .timeline-item .timeline-title {
+    font-weight: 700; color: var(--ns-navy); margin: 2px 0 4px; font-size: 15px;
+  }
+  .timeline-item .timeline-summary { font-size: 13.5px; color: var(--ns-text-muted); line-height: 1.55; }
+  .timeline-item .timeline-meta {
+    margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    font-size: 11.5px; color: var(--ns-text-faint);
+  }
+  .timeline-item .timeline-category {
+    background: var(--ns-card-tinted); padding: 2px 8px; border-radius: 4px;
+    color: var(--ns-navy); font-weight: 600;
+  }
+  .timeline-item a { color: var(--ns-navy-light); text-decoration: none; }
+  .timeline-item a:hover { text-decoration: underline; }
+
+  /* ===== Section 3: Competitor Matrix ===== */
+  .matrix-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  .competitor-card {
+    border: 1px solid var(--ns-border); border-radius: var(--radius);
+    overflow: hidden; transition: all 0.2s; cursor: pointer;
+    background: var(--ns-bg-soft);
+  }
+  .competitor-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .competitor-card.self-bench {
+    border: 2px solid var(--ns-red); position: relative;
+  }
+  .competitor-card.self-bench::after {
+    content: 'SELF'; position: absolute; top: 8px; right: 8px;
+    background: var(--ns-red); color: #fff; font-size: 10px;
+    padding: 2px 6px; border-radius: 3px; font-weight: 700;
+  }
+  .competitor-card .competitor-header {
+    background: linear-gradient(135deg, var(--ns-navy), var(--ns-navy-light));
+    color: #fff; padding: 12px 16px; font-weight: 700; font-size: 15px;
+  }
+  .competitor-card .competitor-body { padding: 14px 16px; }
+  .competitor-card .competitor-dim {
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px dashed var(--ns-border);
+  }
+  .competitor-card .competitor-dim:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .competitor-card .dim-label {
+    font-size: 11px; color: var(--ns-text-faint); text-transform: uppercase;
+    letter-spacing: 1px; font-weight: 600; margin-bottom: 4px;
+  }
+  .competitor-card .dim-content { font-size: 13px; color: var(--ns-text); line-height: 1.55; }
+  .competitor-card .dim-content.empty { color: var(--ns-text-faint); font-style: italic; }
+
+  /* Modal for drill-down */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(18, 37, 73, 0.6);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+    padding: 24px; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: #fff; border-radius: var(--radius-lg); max-width: 720px; width: 100%;
+    max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+  }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--ns-border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(135deg, var(--ns-navy), var(--ns-navy-light));
+    color: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .modal-header h3 { font-size: 18px; font-weight: 700; }
+  .modal-close {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px;
+  }
+  .modal-body { padding: 24px; }
+  .modal-section { margin-bottom: 18px; }
+  .modal-section h4 {
+    font-size: 13px; color: var(--ns-text-faint); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .modal-section ul { margin-left: 20px; }
+  .modal-section li { margin-bottom: 6px; font-size: 14px; line-height: 1.6; }
+
+  /* ===== Section 4: Campaign Cards ===== */
+  .campaign-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .campaign-card {
+    border: 1px solid var(--ns-border); border-radius: var(--radius);
+    background: var(--ns-bg-soft); overflow: hidden;
+  }
+  .campaign-card .campaign-header {
+    padding: 14px 18px; background: var(--ns-card-tinted);
+    border-bottom: 1px solid var(--ns-border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .campaign-card .campaign-brand {
+    font-weight: 700; color: var(--ns-navy); font-size: 14px;
+  }
+  .campaign-card .campaign-channel-tag {
+    font-size: 11px; padding: 3px 8px; background: var(--ns-gold);
+    color: #fff; border-radius: 4px; font-weight: 600;
+  }
+  .campaign-card .campaign-body { padding: 16px 18px; }
+  .campaign-card .campaign-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--ns-text);
+  }
+  .campaign-card .campaign-row {
+    display: flex; font-size: 13px; margin-bottom: 6px; line-height: 1.55;
+  }
+  .campaign-card .campaign-row .label {
+    flex-shrink: 0; min-width: 70px; color: var(--ns-text-faint); font-weight: 600;
+  }
+  .campaign-card .campaign-row .value { color: var(--ns-text); flex: 1; }
+  .campaign-card .takeaway {
+    margin-top: 12px; padding: 10px 12px;
+    background: rgba(200, 16, 46, 0.06); border-left: 3px solid var(--ns-red);
+    border-radius: 4px; font-size: 13px; line-height: 1.55;
+  }
+  .campaign-card .takeaway-label {
+    font-weight: 700; color: var(--ns-red); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  /* ===== Section 5: Channel Intel ===== */
+  .channel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .channel-block {
+    padding: 18px 20px; border-radius: var(--radius);
+    background: var(--ns-bg-soft); border: 1px solid var(--ns-border);
+  }
+  .channel-block h3 {
+    font-size: 15px; font-weight: 700; color: var(--ns-navy);
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--ns-gold);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .channel-block h3::before {
+    content: ''; width: 8px; height: 8px; background: var(--ns-gold);
+    border-radius: 50%; display: inline-block;
+  }
+  .channel-block ul { list-style: none; }
+  .channel-block li {
+    padding: 8px 0; border-bottom: 1px dashed var(--ns-border); font-size: 13.5px; line-height: 1.6;
+  }
+  .channel-block li:last-child { border-bottom: none; }
+  .channel-block li::before {
+    content: '▸'; color: var(--ns-red); margin-right: 8px; font-weight: 700;
+  }
+
+  /* ===== Section 6: Asia + Global ===== */
+  .asia-list { display: flex; flex-direction: column; gap: 12px; }
+  .asia-item {
+    padding: 14px 18px; border-left: 4px solid var(--ns-gold);
+    background: var(--ns-bg-soft); border-radius: var(--radius);
+  }
+  .asia-item .asia-source {
+    font-size: 11px; color: var(--ns-gold); text-transform: uppercase;
+    letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;
+  }
+  .asia-item .asia-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--ns-navy);
+  }
+  .asia-item .asia-summary { font-size: 13.5px; color: var(--ns-text); margin-bottom: 8px; line-height: 1.6; }
+  .asia-item .asia-takeaway {
+    font-size: 12.5px; color: var(--ns-text-muted); font-style: italic;
+    background: var(--ns-card-tinted); padding: 8px 12px; border-radius: 6px;
+  }
+  .asia-item .asia-takeaway::before { content: '💡 '; font-style: normal; }
+
+  /* ===== Section 7: Dashboard ===== */
+  .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .chart-block {
+    padding: 20px; background: var(--ns-bg-soft);
+    border: 1px solid var(--ns-border); border-radius: var(--radius);
+  }
+  .chart-block h3 {
+    font-size: 14px; color: var(--ns-text-muted); margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .chart-block canvas { max-height: 240px; }
+
+  /* ===== Section 8: Recommendations ===== */
+  .rec-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .rec-card {
+    padding: 18px 22px; border-radius: var(--radius);
+    background: var(--ns-bg-soft); border: 1px solid var(--ns-border);
+    border-left: 5px solid var(--priority-watch); position: relative;
+  }
+  .rec-card.priority-high { border-left-color: var(--priority-high); background: rgba(200, 16, 46, 0.03); }
+  .rec-card.priority-medium { border-left-color: var(--priority-med); }
+  .rec-card.priority-watch { border-left-color: var(--priority-watch); }
+  .rec-card .rec-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .rec-card .rec-priority {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 12px; color: #fff;
+  }
+  .rec-card.priority-high .rec-priority { background: var(--priority-high); }
+  .rec-card.priority-medium .rec-priority { background: var(--priority-med); }
+  .rec-card.priority-watch .rec-priority { background: var(--priority-watch); }
+  .rec-card .rec-type {
+    font-size: 12px; color: var(--ns-text-muted); padding: 3px 8px;
+    background: var(--ns-card-tinted); border-radius: 4px;
+  }
+  .rec-card .rec-specific {
+    font-size: 16px; font-weight: 700; color: var(--ns-navy);
+    margin-bottom: 12px; line-height: 1.5;
+  }
+  .rec-card .rec-detail-row { display: flex; margin-bottom: 6px; font-size: 13px; line-height: 1.6; }
+  .rec-card .rec-detail-row .label {
+    min-width: 72px; color: var(--ns-text-faint); font-weight: 600;
+  }
+  .rec-card .rec-detail-row .value { color: var(--ns-text); flex: 1; }
+  .rec-card .rec-risk {
+    margin-top: 10px; padding: 8px 12px; background: rgba(232, 155, 35, 0.08);
+    border-left: 3px solid var(--priority-med); font-size: 12.5px;
+    border-radius: 4px;
+  }
+  .rec-card .rec-risk-label {
+    color: var(--priority-med); font-weight: 700; margin-right: 6px;
+  }
+
+  /* ===== Section 9: Historical Recall ===== */
+  #section-9 { display: none; }
+  #section-9.visible { display: block; }
+  .recall-intro {
+    padding: 14px 18px; background: var(--ns-card-tinted);
+    border-radius: var(--radius); font-size: 13.5px;
+    color: var(--ns-text-muted); margin-bottom: 16px; line-height: 1.6;
+  }
+  .recall-intro strong { color: var(--ns-navy); }
+  .recall-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .recall-node {
+    display: grid; grid-template-columns: 80px 1fr; gap: 18px;
+    padding: 16px 18px; border: 1px solid var(--ns-border);
+    border-radius: var(--radius); background: var(--ns-bg-soft);
+  }
+  .recall-node .recall-year {
+    font-family: 'Inter', sans-serif; font-size: 26px; font-weight: 900;
+    color: var(--ns-gold); line-height: 1;
+  }
+  .recall-node .recall-title {
+    font-weight: 700; color: var(--ns-navy); margin-bottom: 4px; font-size: 14.5px;
+  }
+  .recall-node .recall-lesson {
+    font-size: 13px; color: var(--ns-text); line-height: 1.6;
+  }
+
+  /* ===== Footer ===== */
+  .report-footer {
+    text-align: center; padding: 28px 24px; color: var(--ns-text-faint);
+    font-size: 12px; border-top: 1px solid var(--ns-border);
+    background: var(--ns-bg-soft); margin-top: 16px;
+  }
+  .report-footer strong { color: var(--ns-navy); }
+
+  /* ===== Print ===== */
+  @media print {
+    body { background: #fff; }
+    section { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+    .filter-chip { display: none; }
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .container { padding: 24px 20px; }
+    .report-header { padding: 28px 24px 24px; }
+    .header-band { flex-direction: column; }
+    .header-right { text-align: left; }
+    .snapshot-grid, .matrix-grid, .campaign-grid, .channel-grid, .dashboard-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="header-band">
+    <div class="header-left">
+      <div class="eyebrow">NAN SHAN LIFE · WEEKLY INSURANCE INTELLIGENCE</div>
+      <h1>南山保險業週報情報</h1>
+      <div class="subtitle">For 商品推廣部 · 三視角整合：保險顧問 × 商業數據 × 行銷達人</div>
+    </div>
+    <div class="header-right">
+      <div class="week-label" id="hdr-week">—</div>
+      <div class="week-range" id="hdr-range">—</div>
+      <div class="generated" id="hdr-generated">—</div>
+    </div>
+  </div>
+  <div class="focus-bar" id="focus-bar">
+    <span class="focus-label">本週焦點</span>
+    <span id="focus-theme"></span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Section 1: Executive Snapshot -->
+  <section id="section-1">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <h2>Executive Snapshot</h2>
+      <span class="section-sub">本週三大重點 + 一句話結論</span>
+    </div>
+    <div class="snapshot-grid">
+      <div class="top-stories" id="top-stories"></div>
+      <div class="one-liner">
+        <div class="one-liner-label">給商推部一句話</div>
+        <div class="one-liner-text" id="one-liner-text">—</div>
+        <div class="one-liner-attribution">本週情報綜合判斷 · 三視角整合</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Regulatory Timeline -->
+  <section id="section-2">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2>監理與政策時間軸</h2>
+      <span class="section-sub">可篩選 · 點擊類別切換</span>
+    </div>
+    <div class="timeline-filters" id="timeline-filters"></div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <!-- Section 3: Competitor Matrix -->
+  <section id="section-3">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2>競品動態矩陣</h2>
+      <span class="section-sub">六大壽險 × 商品/通路/行銷 · 點擊卡片下鑽</span>
+    </div>
+    <div class="matrix-grid" id="competitor-matrix"></div>
+  </section>
+
+  <!-- Section 4: Campaign Cards -->
+  <section id="section-4">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2>行銷 Campaign 拆解</h2>
+      <span class="section-sub">本週競品主推活動與南山可借鏡點</span>
+    </div>
+    <div class="campaign-grid" id="campaign-cards"></div>
+  </section>
+
+  <!-- Section 5: Channel Intel -->
+  <section id="section-5">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <h2>通路情報</h2>
+      <span class="section-sub">業務員 · 銀保 · 保經代 · 數位</span>
+    </div>
+    <div class="channel-grid" id="channel-grid"></div>
+  </section>
+
+  <!-- Section 6: Asia + Global -->
+  <section id="section-6">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2>亞洲標竿 + 全球 InsurTech</h2>
+      <span class="section-sub">精選 3–5 條值得借鏡</span>
+    </div>
+    <div class="asia-list" id="asia-list"></div>
+  </section>
+
+  <!-- Section 7: Dashboard -->
+  <section id="section-7">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <h2>數據儀表板</h2>
+      <span class="section-sub">FYP · 市佔 · 數位聲量</span>
+    </div>
+    <div class="dashboard-grid">
+      <div class="chart-block">
+        <h3>FYP 趨勢 (六大壽險)</h3>
+        <canvas id="chart-fyp"></canvas>
+      </div>
+      <div class="chart-block">
+        <h3>市佔變動 (Market Share)</h3>
+        <canvas id="chart-share"></canvas>
+      </div>
+      <div class="chart-block" style="grid-column: span 2;">
+        <h3>數位聲量 (Digital Share-of-Voice · 本週)</h3>
+        <canvas id="chart-sov"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Recommendations -->
+  <section id="section-8">
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <h2>🎯 南山商推部行動建議</h2>
+      <span class="section-sub">具體到「推什麼商品 / 走哪個通路」</span>
+    </div>
+    <div class="rec-grid" id="rec-grid"></div>
+  </section>
+
+  <!-- Section 9: Historical Recall (conditional) -->
+  <section id="section-9">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <h2>歷史復盤</h2>
+      <span class="section-sub">重大事件觸發 · 從過去找啟示</span>
+    </div>
+    <div class="recall-intro" id="recall-intro"></div>
+    <div class="recall-grid" id="recall-grid"></div>
+  </section>
+
+</div>
+
+<footer class="report-footer">
+  <strong>南山人壽 · 商品推廣部</strong> · 保險業週報情報 · 內部參考用 ·
+  資料源：金管會 / 保發中心 / 壽險公會 / 公開新聞 / 競品公開揭露
+</footer>
+
+<!-- Modal for competitor drill-down -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title">—</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== Report Data (injected by skill) ===== -->
+<script id="report-data" type="application/json">{"meta": {"weekLabel": "2026/W20", "weekRange": "2026/05/12 – 2026/05/18", "focusTheme": "實支實付改革 + 分紅保單回歸", "generatedAt": "2026/05/19 14:30", "heavyEventTriggered": true}, "executiveSnapshot": {"topStories": [{"title": "金管會釋出實支實付改革第二階段方向", "summary": "預計限制副本理賠張數至單張，並要求商品揭露強化。業界商品設計與業務員話術全面重塑。", "tag": "監理 · High"}, {"title": "國泰人壽推出新版美元利變壽險", "summary": "預訂利率調升 25 bps，主打銀保通路本月主推檔期，與富邦短兵相接。", "tag": "競品 · 商品"}, {"title": "富邦投資型保單本月 FB 投放量峰值", "summary": "本週 FB / IG 廣告投放量本年度第二高，主推內容為「世代財富傳承」訴求。", "tag": "競品 · 行銷"}], "oneLineForBOD": "實支實付改革進入下半場 — 建議本月加速「健康險組合包」上市節奏，搶在競品話術重塑前佔住業務員通路。"}, "regulatoryTimeline": [{"date": "2026/05/15", "category": "監理", "title": "金管會公布實支實付副本理賠張數限制草案", "summary": "草案規範新契約限制副本理賠至單張，並強化商品揭露要求。預告期 60 天。", "source": "金管會新聞稿", "sourceUrl": "https://www.fsc.gov.tw/", "priority": "high"}, {"date": "2026/05/14", "category": "業界", "title": "壽險公會發布 4 月份業界 FYP 統計", "summary": "4 月業界 FYP 較上月 +3.2%，利變壽險佔比小幅回升，投資型維持成長。", "source": "壽險公會", "sourceUrl": "https://www.lia-roc.org.tw/", "priority": "med"}, {"date": "2026/05/13", "category": "商品", "title": "業界傳出多家壽險將於 6 月推新分紅保單", "summary": "分紅保單回歸議題持續加溫，據傳國泰、富邦、新光皆在準備中。", "source": "工商時報", "sourceUrl": "https://www.ctee.com.tw/", "priority": "high"}, {"date": "2026/05/12", "category": "國際", "title": "IFRS 17 第二年度實施回饋座談", "summary": "保發中心舉辦業界回饋會，討論 CSM 認列實務問題與改善空間。", "source": "保發中心", "sourceUrl": "https://www.tii.org.tw/", "priority": "watch"}, {"date": "2026/05/12", "category": "監理", "title": "投資型保單適合度規範執行檢視", "summary": "金管會對銀行通路投資型保單適合度進行專案檢查，6 家銀行抽樣。", "source": "金管會", "sourceUrl": "https://www.fsc.gov.tw/", "priority": "med"}], "competitorMatrix": {"國泰人壽": {"product": ["推新版美元利變壽險 (預訂利率上調 25 bps)", "停售舊版投資型保單 ABC"], "channel": ["國泰世華本月主推美元利變", "通路話術強化「美元保值」訴求"], "marketing": ["新 TVC 上線, 主打「家庭傳承」", "KOL 矩陣同步啟動"], "productDetail": "新版美元利變壽險為符合 IFRS 17 後的新商品設計，CSM 認列方式有調整。預訂利率調升回應市場利率環境。", "channelDetail": "國泰世華 5–6 月主推檔期確定，業務員端同步配合「美元家庭傳承」話術包。", "marketingDetail": "TVC 已在電視台滾動播放，社群以「父親節 + 美元保值」為主軸，預估投放量本月達近一年高峰。", "implicationForNanShan": "國泰把「美元 + 家庭傳承」打包成完整 campaign，南山業務員通路規模大但話術整合度可加強，建議準備「家庭多代財富規劃」對應素材。"}, "富邦人壽": {"product": ["投資型保單新銷售檔期"], "channel": ["台北富邦銀保推投資型", "中信通路檔期收尾"], "marketing": ["FB 廣告投放量年內次高", "與職棒聯名活動進行中"], "channelDetail": "台北富邦銀保通路本月主推投資型，特別針對 30–45 歲已婚薪資族。", "marketingDetail": "FB / IG 廣告本週投放量為年內次高，創意以「世代財富傳承」+ 職棒聯名為主軸。", "implicationForNanShan": "富邦在投資型 + 數位行銷的領先進一步擴大，南山投資型保單若要追，需思考數位投放預算與 KOL 矩陣的配置。"}, "新光人壽": {"product": [], "channel": [], "marketing": [], "implicationForNanShan": "新光持續處於資本壓力下，商品策略相對保守，本週無顯著動態。可短期內持續觀察併購議題進展。"}, "中國人壽": {"product": ["長照險新方案規劃中 (媒體報導)"], "channel": ["凱基銀保通路保持穩定"], "marketing": ["銀髮族安養活動"], "implicationForNanShan": "中壽在長照險著力較深，南山現有長照產品線可參考其商品設計細節。"}, "台灣人壽": {"product": [], "channel": ["中信銀保檔期收尾"], "marketing": ["信用卡 × 保險交叉行銷活動"], "implicationForNanShan": "中信通路活動規模一向是業界指標，本週為檔期收尾，下月新檔期啟動前是關鍵觀察期。"}, "南山人壽": {"isSelf": true, "product": ["本月主推 [內部商品] (健康險組合包)", "業務員教育訓練更新中"], "channel": ["業務員 Q2 競賽進入衝刺週"], "marketing": ["品牌「因為愛」TVC 持續露出"], "productDetail": "本月健康險組合包進入主推第二週，業務員教育材料已下發。", "channelDetail": "業務員 Q2 競賽剩 6 週，本週個人 FYP 目標達成率業界中段，可考慮加碼短期激勵。", "marketingDetail": "品牌 TVC 持續露出但數位投放量相對國泰、富邦保守；社群討論度本月相對平淡。", "implicationForNanShan": "本週相對於競品的兩大優勢：(1) 業務員規模 (2) 健康險組合包先行；劣勢：(1) 數位投放聲量 (2) 投資型 / 美元商品話術整合度。"}}, "campaignCards": [{"brand": "國泰人壽", "title": "「守護家庭 · 美元世代」品牌活動", "channel": "TVC + 數位 + KOL", "target": "35–55 歲家庭主購險者，已婚有子女", "message": "家庭傳承 + 美元保值雙訴求 — 「為下一代守住財富」", "budgetEstimate": "電視投放推估 NT$ 1,500–2,500 萬 / 月，數位佔比 30%", "takeaway": "美元利變壽險的「家庭責任」訴求南山已有相同基礎，可考慮加碼數位 + KOL 觸達 30 代族群擴張潛在新客，並把「家庭多代」概念延伸至業務員話術。"}, {"brand": "富邦人壽", "title": "「世代財富傳承 × 職棒聯名」", "channel": "FB / IG 廣告 + 球場活動", "target": "30–45 歲已婚薪資族，球迷文化親近", "message": "投資型保單 = 主動為下一代規劃", "budgetEstimate": "FB 投放量為年內次高，社群熱度推估 +120% MoM", "takeaway": "富邦把「金融 × 文化 IP」拉到新高度，南山若沒有對應 IP 合作，可考慮 (1) 與在地文化 IP 短期試水 (2) 在業務員端設計同訴求話術包對標。"}], "channelIntel": {"tied_agent": ["業界傳出某大型壽險業務員月增規模調整 (媒體報導待證實)", "業務員 Q2 競賽進入衝刺週，多家壽險加碼短期激勵", "業務員數位投保 (e-policy) 滲透率業界 4 月達 65% (公會數據)"], "bancassurance": ["台北富邦本月主推投資型保單", "玉山銀行本月聚焦美元利變壽險", "中信銀保 5 月檔期收尾，6 月新檔期將啟", "第一銀行銀保通路加碼健康險組合"], "broker": ["錠嵂保經本週公布 5 月主推清單，健康險為主軸", "公勝保經舉辦客戶教育活動，主題為實支實付改革解讀", "磐石保經與多家壽險合作擴大年金險推廣"], "digital": ["六大壽險本週 FB 廣告投放量富邦居冠、國泰次之", "InsurTech 新創 X 取得 Pre-A 輪資金 (健康險 AI 核保方向)", "Meta 廣告檔案庫顯示壽險業 5 月活躍廣告數較上月 +18%"]}, "asiaGlobal": [{"source": "日本生命 (Nippon Life)", "title": "推出新型企業團體 LTC 保障方案", "summary": "針對日本企業福利市場，提供 LTC + 退休規劃整合，含個人加保彈性與雇主補貼模組。", "takeawayForNanShan": "南山團險業務可參考將 LTC 整合為企業福利的設計思路，特別在大型企業客戶 (1000+ 員工) 提案。"}, {"source": "AIA Hong Kong", "title": "AI 核保新模組上線", "summary": "新版 AI 核保模組強化健康險快速通過率，並整合可穿戴裝置數據作為持續核保依據。", "takeawayForNanShan": "可穿戴裝置 + AI 核保是中長期方向，南山可先在新契約試點數位健康險核保自動化。"}, {"source": "Lemonade (US)", "title": "Lemonade 推 AI-powered 健康險核保", "summary": "Lemonade 將其 AI 平台延伸至健康險，主打 90 秒核保與差異化費率。", "takeawayForNanShan": "海外 InsurTech 已將 AI 核保標準化，台灣市場仍在試點階段，南山可關注落地時機。"}, {"source": "Prudential plc", "title": "亞洲新興市場 (印尼、越南) 加碼 LTC + Annuity 商品", "summary": "保誠在東南亞新興市場推出針對中產階級的 LTC + 年金組合，主打銀行通路。", "takeawayForNanShan": "東南亞 LTC + 年金組合的設計思路，可作為台灣銀髮族商品線重塑的參考。"}], "dashboard": {"fypTrend": {"labels": ["W17", "W18", "W19", "W20"], "datasets": [{"label": "國泰", "data": [100, 105, 110, 108]}, {"label": "富邦", "data": [90, 92, 95, 97]}, {"label": "南山", "data": [75, 78, 80, 82]}, {"label": "新光", "data": [55, 53, 54, 52]}, {"label": "中國", "data": [48, 50, 49, 51]}, {"label": "台灣", "data": [40, 42, 43, 44]}]}, "marketShare": {"labels": ["國泰", "富邦", "南山", "新光", "中國", "台灣"], "datasets": [{"label": "市佔 %", "data": [22, 20, 16, 13, 10, 8]}]}, "digitalShareOfVoice": {"labels": ["國泰", "富邦", "南山", "新光", "中國", "台灣"], "datasets": [{"label": "社群討論度 Index (本週)", "data": [85, 92, 60, 45, 50, 70]}]}}, "recommendations": [{"priority": "high", "type": "主推商品 + 通路調整", "specific": "本月加速「健康險組合包」(實支實付 + 重大傷病 + 失能扶助) 上市，主打業務員通路 40–55 歲已婚客群", "logic": "實支實付改革第二階段確定限制副本，業界商品設計重塑窗口期 8–12 週。南山業務員規模優勢可在此題上拉開差距，搶在競品話術完整化之前佔住客戶心智。", "risk": "若監理草案最終版本與現行解讀有差 (例如張數限制細節)，組合包設計可能需要二次調整。建議業務員話術設計保留 20% 彈性，並準備兩版 FAQ。"}, {"priority": "high", "type": "對外溝通 + 行銷投放", "specific": "本月啟動「家庭多代財富規劃」數位投放主題，鎖 30–40 歲首購險族群，FB + IG + 短影音聯動", "logic": "國泰、富邦本週都在打「家庭傳承」訴求，南山若不接題會在這個敘事戰上失聲。30–40 代是南山客戶結構相對薄弱的族群，這是雙重戰略意義。", "risk": "數位投放預算需快速調整，可能擠壓既有檔期；建議從業務員通路導流 + 數位投放雙軌測試 4 週，再決定加碼力度。"}, {"priority": "medium", "type": "通路調整", "specific": "本月強化保經代主推清單卡位，特別針對錠嵂、公勝、磐石三家提供健康險組合包的 BTL (合作活動 + 客戶教育) 支援", "logic": "錠嵂本週公布主推清單以健康險為主軸，這是搶通路話語權的窗口期。提供「客戶教育」資源是進入主推清單的成本最低的方式。", "risk": "保經代立場中立，過度傾向南山可能受其他壽險公司反彈；建議以「客戶教育」而非「品牌曝光」為主訴求。"}, {"priority": "medium", "type": "內部準備", "specific": "啟動分紅保單商品準備，目標 7–8 月推出第一版，先以業務員通路試水", "logic": "業界 6 月分紅保單潮已可預見，南山若 Q3 才推會在話術競爭中落後。先在業務員通路試水可控規模且收集回饋。", "risk": "分紅保單對業務員教育與客戶溝通要求高，倉促上市可能傷品牌；建議內部教育訓練先行 3–4 週。"}, {"priority": "watch", "type": "內部準備", "specific": "監看 IFRS 17 第二年度回饋座談結論，評估對 CSM 認列實務影響", "logic": "IFRS 17 第二年度實務問題是業界財務與商品設計的重要訊號，需要商推部與精算 / 財務協作關注。", "risk": "資訊技術性強，建議由精算部主導，商推部 follow-up 對商品設計的影響即可。"}, {"priority": "watch", "type": "客群鎖定", "specific": "追蹤新光金 / 台新金合併議題進展，準備新光客戶的潛在轉移應對", "logic": "若合併進展加快，新光客戶可能進入觀望期，是南山業務員拓展的機會窗口。", "risk": "新光合併議題尚未塵埃落定，過早動作可能徒勞無功；建議業務員端「準備好但不主動」。"}], "historicalRecall": {"trigger": "本週實支實付改革第二階段方向釋出 + 分紅保單回歸議題加溫 — 兩個重大商品結構性訊號同時出現，觸發歷史復盤。", "nodes": [{"year": "2020s 初", "title": "副本理賠爭議浮現", "lesson": "副本機制因道德風險被討論，當時業界以「客戶需求大」為由維持，最終仍走向監理收斂。本週改革是這條軸線的必然延續 — 提早準備總比被動回應好。"}, {"year": "2010s 中", "title": "重大傷病險爆發年代", "lesson": "上一波健康險商品線重塑時，重大傷病險成主流，業務員話術完整落地用了 6–9 個月。本次「實支實付 + 重大傷病搭售」可比照節奏，但壓縮到 3–4 個月。"}, {"year": "2000s 初", "title": "傳統壽險到利變壽險的轉換期", "lesson": "商品結構大轉換時，通路話術重塑滯後商品上市 6–9 個月。商推部若能與業務員教育部門提早協作，可大幅縮短時差。"}]}}</script>
+
+<script>
+(function() {
+  // Parse injected data
+  const dataEl = document.getElementById('report-data');
+  let DATA;
+  try {
+    DATA = JSON.parse(dataEl.textContent);
+  } catch (e) {
+    document.body.innerHTML = '<div style="padding:48px;font-family:sans-serif;"><h1>報告資料載入失敗</h1><p>JSON parse error: ' + e.message + '</p></div>';
+    return;
+  }
+
+  // ===== Header =====
+  document.getElementById('hdr-week').textContent = DATA.meta.weekLabel || '—';
+  document.getElementById('hdr-range').textContent = DATA.meta.weekRange || '—';
+  document.getElementById('hdr-generated').textContent = 'Generated: ' + (DATA.meta.generatedAt || '—');
+  if (DATA.meta.focusTheme) {
+    document.getElementById('focus-bar').classList.add('visible');
+    document.getElementById('focus-theme').textContent = DATA.meta.focusTheme;
+  }
+
+  // ===== Section 1: Snapshot =====
+  const storiesEl = document.getElementById('top-stories');
+  (DATA.executiveSnapshot.topStories || []).forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'story-card';
+    div.innerHTML = `
+      <div class="story-rank">${i + 1}</div>
+      <div class="story-title">${escapeHtml(s.title)}</div>
+      <div class="story-summary">${escapeHtml(s.summary)}</div>
+      ${s.tag ? `<div class="story-tag">${escapeHtml(s.tag)}</div>` : ''}
+    `;
+    storiesEl.appendChild(div);
+  });
+  document.getElementById('one-liner-text').textContent = DATA.executiveSnapshot.oneLineForBOD || '—';
+
+  // ===== Section 2: Timeline =====
+  const timeline = DATA.regulatoryTimeline || [];
+  const categories = [...new Set(timeline.map(t => t.category).filter(Boolean))];
+  const filtersEl = document.getElementById('timeline-filters');
+  const timelineEl = document.getElementById('timeline');
+
+  // Build filter chips
+  const allChip = createChip('全部', true);
+  allChip.dataset.cat = '__all__';
+  filtersEl.appendChild(allChip);
+  categories.forEach(cat => {
+    const chip = createChip(cat, false);
+    chip.dataset.cat = cat;
+    filtersEl.appendChild(chip);
+  });
+  filtersEl.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      filtersEl.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const cat = chip.dataset.cat;
+      timelineEl.querySelectorAll('.timeline-item').forEach(item => {
+        if (cat === '__all__' || item.dataset.cat === cat) item.classList.remove('hidden');
+        else item.classList.add('hidden');
+      });
+    });
+  });
+
+  // Build timeline items
+  timeline.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'timeline-item priority-' + (t.priority || 'watch');
+    div.dataset.cat = t.category || '';
+    div.innerHTML = `
+      <div class="timeline-date">${escapeHtml(t.date)}</div>
+      <div class="timeline-title">${escapeHtml(t.title)}</div>
+      <div class="timeline-summary">${escapeHtml(t.summary)}</div>
+      <div class="timeline-meta">
+        ${t.category ? `<span class="timeline-category">${escapeHtml(t.category)}</span>` : ''}
+        ${t.source ? `<span>來源: ${t.sourceUrl ? `<a href="${escapeAttr(t.sourceUrl)}" target="_blank" rel="noopener">${escapeHtml(t.source)}</a>` : escapeHtml(t.source)}</span>` : ''}
+      </div>
+    `;
+    timelineEl.appendChild(div);
+  });
+
+  // ===== Section 3: Competitor Matrix =====
+  const matrixEl = document.getElementById('competitor-matrix');
+  const matrix = DATA.competitorMatrix || {};
+  Object.keys(matrix).forEach(brand => {
+    const cmp = matrix[brand];
+    const card = document.createElement('div');
+    card.className = 'competitor-card' + (cmp.isSelf ? ' self-bench' : '');
+    card.innerHTML = `
+      <div class="competitor-header">${escapeHtml(brand)}</div>
+      <div class="competitor-body">
+        <div class="competitor-dim">
+          <div class="dim-label">商品 Product</div>
+          <div class="dim-content ${(cmp.product || []).length ? '' : 'empty'}">${formatList(cmp.product)}</div>
+        </div>
+        <div class="competitor-dim">
+          <div class="dim-label">通路 Channel</div>
+          <div class="dim-content ${(cmp.channel || []).length ? '' : 'empty'}">${formatList(cmp.channel)}</div>
+        </div>
+        <div class="competitor-dim">
+          <div class="dim-label">行銷 Marketing</div>
+          <div class="dim-content ${(cmp.marketing || []).length ? '' : 'empty'}">${formatList(cmp.marketing)}</div>
+        </div>
+      </div>
+    `;
+    card.addEventListener('click', () => openCompetitorModal(brand, cmp));
+    matrixEl.appendChild(card);
+  });
+
+  // ===== Section 4: Campaigns =====
+  const campaignEl = document.getElementById('campaign-cards');
+  (DATA.campaignCards || []).forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'campaign-card';
+    card.innerHTML = `
+      <div class="campaign-header">
+        <span class="campaign-brand">${escapeHtml(c.brand)}</span>
+        ${c.channel ? `<span class="campaign-channel-tag">${escapeHtml(c.channel)}</span>` : ''}
+      </div>
+      <div class="campaign-body">
+        <div class="campaign-title">${escapeHtml(c.title)}</div>
+        ${c.target ? row('Target', c.target) : ''}
+        ${c.message ? row('Message', c.message) : ''}
+        ${c.budgetEstimate ? row('預算估計', c.budgetEstimate) : ''}
+        ${c.takeaway ? `<div class="takeaway"><span class="takeaway-label">南山可借鏡</span><br>${escapeHtml(c.takeaway)}</div>` : ''}
+      </div>
+    `;
+    campaignEl.appendChild(card);
+  });
+
+  // ===== Section 5: Channel Intel =====
+  const channelEl = document.getElementById('channel-grid');
+  const channelMeta = {
+    tied_agent: '業務員通路 (Tied Agent)',
+    bancassurance: '銀保通路 (Bancassurance)',
+    broker: '保經代 (Broker / Agency)',
+    digital: '數位 / 電銷 (Digital / Telesales)'
+  };
+  Object.keys(channelMeta).forEach(key => {
+    const items = (DATA.channelIntel || {})[key] || [];
+    if (!items.length) return;
+    const block = document.createElement('div');
+    block.className = 'channel-block';
+    block.innerHTML = `
+      <h3>${channelMeta[key]}</h3>
+      <ul>${items.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
+    `;
+    channelEl.appendChild(block);
+  });
+
+  // ===== Section 6: Asia + Global =====
+  const asiaEl = document.getElementById('asia-list');
+  (DATA.asiaGlobal || []).forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'asia-item';
+    div.innerHTML = `
+      <div class="asia-source">${escapeHtml(a.source)}</div>
+      <div class="asia-title">${escapeHtml(a.title)}</div>
+      <div class="asia-summary">${escapeHtml(a.summary)}</div>
+      ${a.takeawayForNanShan ? `<div class="asia-takeaway">${escapeHtml(a.takeawayForNanShan)}</div>` : ''}
+    `;
+    asiaEl.appendChild(div);
+  });
+
+  // ===== Section 7: Charts =====
+  const NS_COLORS = ['#1B3A6B', '#C8102E', '#B8923D', '#2A5391', '#E89B23', '#4A7BB7'];
+  const chartDefaults = {
+    plugins: { legend: { labels: { font: { family: "'Noto Sans TC', sans-serif", size: 11 } } } },
+    scales: {
+      x: { ticks: { font: { family: "'Noto Sans TC', sans-serif", size: 11 } } },
+      y: { ticks: { font: { family: "'Noto Sans TC', sans-serif", size: 11 } } }
+    }
+  };
+
+  if (DATA.dashboard && DATA.dashboard.fypTrend) {
+    new Chart(document.getElementById('chart-fyp').getContext('2d'), {
+      type: 'line',
+      data: applyColors(DATA.dashboard.fypTrend, NS_COLORS),
+      options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false } }
+    });
+  }
+  if (DATA.dashboard && DATA.dashboard.marketShare) {
+    new Chart(document.getElementById('chart-share').getContext('2d'), {
+      type: 'doughnut',
+      data: applyColors(DATA.dashboard.marketShare, NS_COLORS),
+      options: { plugins: chartDefaults.plugins, responsive: true, maintainAspectRatio: false }
+    });
+  }
+  if (DATA.dashboard && DATA.dashboard.digitalShareOfVoice) {
+    new Chart(document.getElementById('chart-sov').getContext('2d'), {
+      type: 'bar',
+      data: applyColors(DATA.dashboard.digitalShareOfVoice, NS_COLORS),
+      options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+    });
+  }
+
+  // ===== Section 8: Recommendations =====
+  const recEl = document.getElementById('rec-grid');
+  (DATA.recommendations || []).forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'rec-card priority-' + (r.priority || 'watch').toLowerCase();
+    card.innerHTML = `
+      <div class="rec-header">
+        <span class="rec-priority">${escapeHtml((r.priority || 'WATCH').toUpperCase())}</span>
+        <span class="rec-type">${escapeHtml(r.type || '')}</span>
+      </div>
+      <div class="rec-specific">${escapeHtml(r.specific)}</div>
+      ${r.logic ? `<div class="rec-detail-row"><span class="label">支撐邏輯</span><span class="value">${escapeHtml(r.logic)}</span></div>` : ''}
+      ${r.risk ? `<div class="rec-risk"><span class="rec-risk-label">⚠ 風險提示</span>${escapeHtml(r.risk)}</div>` : ''}
+    `;
+    recEl.appendChild(card);
+  });
+
+  // ===== Section 9: Historical Recall =====
+  if (DATA.meta.heavyEventTriggered && DATA.historicalRecall) {
+    document.getElementById('section-9').classList.add('visible');
+    document.getElementById('recall-intro').innerHTML =
+      `<strong>本週觸發歷史復盤的原因：</strong>${escapeHtml(DATA.historicalRecall.trigger || '—')}`;
+    const recallEl = document.getElementById('recall-grid');
+    (DATA.historicalRecall.nodes || []).forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'recall-node';
+      div.innerHTML = `
+        <div class="recall-year">${escapeHtml(n.year)}</div>
+        <div>
+          <div class="recall-title">${escapeHtml(n.title)}</div>
+          <div class="recall-lesson">${escapeHtml(n.lesson)}</div>
+        </div>
+      `;
+      recallEl.appendChild(div);
+    });
+  }
+
+  // ===== Helpers =====
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escapeAttr(s) {
+    if (s == null) return '';
+    return String(s).replace(/"/g, '&quot;');
+  }
+  function formatList(arr) {
+    if (!arr || !arr.length) return '本週無顯著動態';
+    return arr.map(x => `<div style="margin-bottom:3px;">• ${escapeHtml(x)}</div>`).join('');
+  }
+  function row(label, value) {
+    return `<div class="campaign-row"><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(value)}</span></div>`;
+  }
+  function createChip(label, active) {
+    const c = document.createElement('button');
+    c.className = 'filter-chip' + (active ? ' active' : '');
+    c.textContent = label;
+    return c;
+  }
+  function applyColors(chartData, colors) {
+    const result = JSON.parse(JSON.stringify(chartData));
+    if (result.datasets) {
+      result.datasets.forEach((ds, i) => {
+        if (!ds.backgroundColor) {
+          if (Array.isArray(result.labels)) {
+            ds.backgroundColor = colors.slice(0, result.labels.length);
+          } else {
+            ds.backgroundColor = colors[i % colors.length];
+          }
+        }
+        if (!ds.borderColor) ds.borderColor = colors[i % colors.length];
+        if (ds.tension == null) ds.tension = 0.3;
+      });
+    }
+    return result;
+  }
+
+  window.openCompetitorModal = function(brand, cmp) {
+    document.getElementById('modal-title').textContent = brand + ' — 本週深度';
+    const body = document.getElementById('modal-body');
+    body.innerHTML = `
+      <div class="modal-section">
+        <h4>商品動態</h4>
+        ${(cmp.product || []).length ? '<ul>' + cmp.product.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>' : '<p style="color:#8B98AB;font-style:italic;">本週無顯著動態</p>'}
+        ${cmp.productDetail ? `<p style="margin-top:8px;font-size:13.5px;line-height:1.65;">${escapeHtml(cmp.productDetail)}</p>` : ''}
+      </div>
+      <div class="modal-section">
+        <h4>通路動態</h4>
+        ${(cmp.channel || []).length ? '<ul>' + cmp.channel.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>' : '<p style="color:#8B98AB;font-style:italic;">本週無顯著動態</p>'}
+        ${cmp.channelDetail ? `<p style="margin-top:8px;font-size:13.5px;line-height:1.65;">${escapeHtml(cmp.channelDetail)}</p>` : ''}
+      </div>
+      <div class="modal-section">
+        <h4>行銷動態</h4>
+        ${(cmp.marketing || []).length ? '<ul>' + cmp.marketing.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>' : '<p style="color:#8B98AB;font-style:italic;">本週無顯著動態</p>'}
+        ${cmp.marketingDetail ? `<p style="margin-top:8px;font-size:13.5px;line-height:1.65;">${escapeHtml(cmp.marketingDetail)}</p>` : ''}
+      </div>
+      ${cmp.implicationForNanShan ? `
+      <div class="modal-section" style="background:rgba(200,16,46,0.05);padding:12px;border-radius:8px;border-left:3px solid #C8102E;">
+        <h4 style="color:#C8102E;">對南山的啟示</h4>
+        <p style="font-size:13.5px;line-height:1.65;">${escapeHtml(cmp.implicationForNanShan)}</p>
+      </div>` : ''}
+    `;
+    document.getElementById('modal-overlay').classList.add('visible');
+  };
+  window.closeModal = function(ev) {
+    if (ev && ev.target.id !== 'modal-overlay' && ev.target.className !== 'modal-close') return;
+    document.getElementById('modal-overlay').classList.remove('visible');
+  };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+})();
+</script>
+</body>
+</html>
